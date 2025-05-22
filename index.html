@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Overall Equipment Effectiveness</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="relative h-screen text-white font-sans">
+
+  <!-- Video de fondo -->
+  <video autoplay muted loop class="absolute w-full h-full object-cover">
+    <source src="fondo.mp4" type="video/mp4" />
+  </video>
+
+  <!-- Capa oscura -->
+  <div class="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
+
+  <!-- Contenido -->
+  <div class="relative z-20 flex flex-col justify-between h-full p-6">
+
+    <!-- Encabezado -->
+    <div class="flex justify-between items-start">
+      <!-- Lugar y clima -->
+      <div class="mb-2">
+        <div id="ubicacion" class="text-sm text-gray-300">Lima, Jueves 22/05/2025</div>
+        <div class="text-xl flex items-center gap-2">
+          <span id="icon">☀️</span>
+          <div>
+            <div id="condition">Nublado</div>
+            <div id="temp" class="text-3xl font-bold">--°</div>
+          </div>
+        </div>
+        <div id="hora" class="text-lg font-bold text-white mt-1"></div>
+      </div>
+
+      <!-- Usuario -->
+      <div class="flex items-center gap-2">
+        <span>Hola, <span id="username">David</span></span>
+        <img src="https://i.pravatar.cc/40" class="rounded-full border-2 border-white"/>
+      </div>
+    </div>
+
+    <!-- Buscador -->
+    <div class="flex justify-center mt-6">
+      <div class="flex items-center bg-white text-black w-2/3 md:w-1/2 rounded-full px-6 py-3 shadow-lg">
+        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-4.35-4.35M17.65 17.65A7.5 7.5 0 103.75 3.75a7.5 7.5 0 0013.9 13.9z" />
+        </svg>
+        <input id="searchInput" type="text" placeholder="Buscar..." class="w-full bg-transparent outline-none" />
+      </div>
+    </div>
+
+    <!-- Frase motivacional -->
+    <p id="frase" class="text-center text-2xl mt-6 font-semibold"></p>
+  </div>
+
+  <!-- Script -->
+  <script>
+    // Nombre del usuario (puedes cambiarlo aquí o usar localStorage)
+    const nombre = localStorage.getItem("userName") || "Anónimo";
+    document.getElementById("username").textContent = nombre;
+
+    // Fecha actual
+    function actualizarFechaYHora() {
+      const fecha = new Date();
+      const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+      const diaNombre = dias[fecha.getDay()];
+      const fechaTexto = `${diaNombre} ${fecha.toLocaleDateString('es-PE')}`;
+      const horaTexto = fecha.toLocaleTimeString('es-PE');
+
+      document.getElementById("ubicacion").textContent = `Lima, ${fechaTexto}`;
+      document.getElementById("hora").textContent = `Hora actual: ${horaTexto}`;
+    }
+
+    actualizarFechaYHora();
+    setInterval(actualizarFechaYHora, 1000); // Actualizar cada segundo
+
+    // Clima en Lima
+    fetch("https://api.open-meteo.com/v1/forecast?latitude=-12.05&longitude=-77.05&current_weather=true")
+      .then(res => res.json())
+      .then(data => {
+        const w = data.current_weather;
+        document.getElementById("temp").textContent = Math.round(w.temperature) + "°";
+        document.getElementById("condition").textContent = w.weathercode === 0 ? "Soleado" : "Nublado";
+        document.getElementById("icon").textContent = w.weathercode === 0 ? "☀️" : "☁️";
+      });
+
+    // Frases motivacionales (aleatorias)
+    const frases = [
+      "Hoy es un buen día para avanzar.",
+      "La constancia vence al talento.",
+      "Hazlo con pasión o cambia de camino.",
+      "Pequeños pasos, grandes resultados.",
+      "Cada esfuerzo cuenta.",
+      "Actitud positiva, mente imparable.",
+      "Tu disciplina marca la diferencia.",
+      "Cree en ti, incluso cuando nadie más lo haga.",
+      "Trabaja duro en silencio y deja que el éxito haga ruido.",
+      "Tu mejor inversión es tu esfuerzo diario."
+    ];
+    document.getElementById("frase").textContent = frases[Math.floor(Math.random() * frases.length)];
+
+    // Buscador (simulado)
+    document.getElementById("searchInput").addEventListener("keydown", e => {
+      if (e.key === "Enter") alert("Buscando: " + e.target.value);
+    });
+  </script>
+
+</body>
+</html>
