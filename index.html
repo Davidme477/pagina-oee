@@ -21,9 +21,8 @@
 
     <!-- Encabezado -->
     <div class="flex justify-between items-start">
-      <!-- Lugar y clima -->
       <div class="mb-2">
-        <div id="ubicacion" class="text-sm text-gray-300">Lima, Jueves 22/05/2025</div>
+        <div id="ubicacion" class="text-sm text-gray-300">Lima</div>
         <div class="text-xl flex items-center gap-2">
           <span id="icon">☀️</span>
           <div>
@@ -34,50 +33,48 @@
         <div id="hora" class="text-lg font-bold text-white mt-1"></div>
       </div>
 
-      <!-- Usuario -->
       <div class="flex items-center gap-2">
-        <span>Hola, <span id="username">David</span></span>
+        <span>Hola, <span id="username">Anónimo</span></span>
         <img src="https://i.pravatar.cc/40" class="rounded-full border-2 border-white"/>
       </div>
     </div>
 
     <!-- Buscador -->
     <div class="flex justify-center mt-6">
-      <div class="flex items-center bg-white text-black w-2/3 md:w-1/2 rounded-full px-6 py-3 shadow-lg">
-        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M21 21l-4.35-4.35M17.65 17.65A7.5 7.5 0 103.75 3.75a7.5 7.5 0 0013.9 13.9z" />
-        </svg>
-        <input id="searchInput" type="text" placeholder="Buscar..." class="w-full bg-transparent outline-none" />
+      <div class="relative w-2/3 md:w-1/2">
+        <input id="searchInput" type="text" placeholder="Buscar..."
+          class="w-full bg-white text-black rounded-full px-6 py-3 shadow-lg outline-none" oninput="mostrarSugerencias()" autocomplete="off" />
+        <ul id="sugerencias" class="absolute w-full bg-white text-black mt-1 rounded shadow-lg hidden z-50 max-h-40 overflow-auto"></ul>
       </div>
     </div>
+
+    <!-- Resultado si no redirige -->
+    <div id="resultadoBusqueda" class="p-4 mt-4 hidden w-full max-w-2xl mx-auto text-sm md:text-base bg-white text-black rounded shadow-lg"></div>
 
     <!-- Frase motivacional -->
     <p id="frase" class="text-center text-2xl mt-6 font-semibold"></p>
   </div>
 
-  <!-- Script -->
+  <!-- Scripts -->
   <script>
-    // Nombre del usuario (puedes cambiarlo aquí o usar localStorage)
+    // Nombre
     const nombre = localStorage.getItem("userName") || "Anónimo";
     document.getElementById("username").textContent = nombre;
 
-    // Fecha actual
+    // Fecha y hora
     function actualizarFechaYHora() {
       const fecha = new Date();
       const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
       const diaNombre = dias[fecha.getDay()];
       const fechaTexto = `${diaNombre} ${fecha.toLocaleDateString('es-PE')}`;
       const horaTexto = fecha.toLocaleTimeString('es-PE');
-
       document.getElementById("ubicacion").textContent = `Lima, ${fechaTexto}`;
       document.getElementById("hora").textContent = `Hora actual: ${horaTexto}`;
     }
-
     actualizarFechaYHora();
-    setInterval(actualizarFechaYHora, 1000); // Actualizar cada segundo
+    setInterval(actualizarFechaYHora, 1000);
 
-    // Clima en Lima
+    // Clima
     fetch("https://api.open-meteo.com/v1/forecast?latitude=-12.05&longitude=-77.05&current_weather=true")
       .then(res => res.json())
       .then(data => {
@@ -87,7 +84,7 @@
         document.getElementById("icon").textContent = w.weathercode === 0 ? "☀️" : "☁️";
       });
 
-    // Frases motivacionales (aleatorias)
+    // Frases
     const frases = [
       "Hoy es un buen día para avanzar.",
       "La constancia vence al talento.",
@@ -102,9 +99,66 @@
     ];
     document.getElementById("frase").textContent = frases[Math.floor(Math.random() * frases.length)];
 
-    // Buscador (simulado)
+    // Buscador
+    const sugerenciasDisponibles = [
+      "Procedimiento para solicitar la reparación de las cosedoras"
+    ];
+
+    function mostrarResultado(valor) {
+      const limpio = valor.trim().toLowerCase();
+
+      if (
+        limpio.includes("cosedora") ||
+        limpio.includes("procedimiento") ||
+        limpio.includes("reparación")
+      ) {
+        window.location.href = "resultado.html";
+      } else {
+        const contenedor = document.getElementById("resultadoBusqueda");
+        contenedor.innerHTML = "No se encontraron resultados.";
+        contenedor.classList.remove("hidden");
+      }
+    }
+
+    function mostrarSugerencias() {
+      const input = document.getElementById("searchInput");
+      const lista = document.getElementById("sugerencias");
+      const valor = input.value.toLowerCase();
+
+      lista.innerHTML = "";
+      if (valor === "") {
+        lista.classList.add("hidden");
+        return;
+      }
+
+      const filtradas = sugerenciasDisponibles.filter(item =>
+        item.toLowerCase().includes(valor)
+      );
+
+      if (filtradas.length === 0) {
+        lista.classList.add("hidden");
+        return;
+      }
+
+      filtradas.forEach(opcion => {
+        const li = document.createElement("li");
+        li.textContent = opcion;
+        li.className = "px-4 py-2 hover:bg-gray-200 cursor-pointer";
+        li.onclick = () => {
+          input.value = opcion;
+          lista.classList.add("hidden");
+          mostrarResultado(opcion);
+        };
+        lista.appendChild(li);
+      });
+
+      lista.classList.remove("hidden");
+    }
+
     document.getElementById("searchInput").addEventListener("keydown", e => {
-      if (e.key === "Enter") alert("Buscando: " + e.target.value);
+      if (e.key === "Enter") {
+        mostrarResultado(e.target.value);
+      }
     });
   </script>
 
